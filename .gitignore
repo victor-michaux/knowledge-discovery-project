@@ -27,3 +27,5 @@ hs_err_pid*
 .DS_STORE
 .idea/
 *.sav
+#*.txt
+*.rdf
