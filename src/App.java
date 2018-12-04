@@ -3,7 +3,7 @@ public class App {
         String ontolgiePath = "news.rdf";
         RdfBuilder rdfBuilder = new RdfBuilder();
 
-        rdfBuilder.createResourcesFromFilePath("news.txt");
+        rdfBuilder.createResourcesFromFilePath("articles.txt");
         rdfBuilder.writeRDF(ontolgiePath);
 
         DataExplorer dataExplorer = new DataExplorer();
@@ -12,9 +12,10 @@ public class App {
         String queryString =
                 "PREFIX dc: <http://purl.org/dc/elements/1.1/>\n" +
                 "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                "SELECT ?author ?topic\n "+
+                "SELECT ?author ?date\n "+
                 "WHERE { ?article dc:creator ?author." +
-                "?article dc:subject \"BASKET BALL\".}";
+                "?article dc:date ?date." +
+                "?article dc:subject \"rec.sport.hockey\".}";
 
         dataExplorer.executeQuery(queryString);
     }

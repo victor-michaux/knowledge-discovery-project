@@ -39,6 +39,7 @@ public class RdfBuilder {
         resource.addProperty(DC_11.description, news.getBody());
         resource.addProperty(DC_11.subject, news.getTopic());
         resource.addProperty(DC_11.creator, news.getAuthor());
+        resource.addProperty(DC_11.date, news.getDate());
     }
 
     private ArrayList<News> getNewsFromFilePath(String path)
@@ -53,12 +54,13 @@ public class RdfBuilder {
 
         ArrayList<News> newsCollection = new ArrayList<>();
 
-        for(int i = 0; i < fileLines.size(); i+=4) {
+        for(int i = 0; i < fileLines.size(); i+=5) {
             String id = fileLines.get(i);
             String body = fileLines.get(i+1);
             String topic = fileLines.get(i+2);
             String author = fileLines.get(i+3);
-            News news = new News(id, body, topic, author);
+            String date = fileLines.get(i+4);
+            News news = new News(id, body, topic, author, date);
             newsCollection.add(news);
         }
 
