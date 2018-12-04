@@ -1,14 +1,16 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Scanner;
-
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.DC_11;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class RdfBuilder {
 
@@ -21,10 +23,9 @@ public class RdfBuilder {
     public static void main(String args[]) {
         RdfBuilder rdfBuilder = new RdfBuilder();
 
-        File inputFile = new File(INPUT_FILE_PATH);
-        rdfBuilder.createResourceFromFile(inputFile);
+        rdfBuilder.createResourcesFromFilePath(INPUT_FILE_PATH);
 
-        rdfBuilder.writeRDF();
+        rdfBuilder.writeRDF(OUTPUT_FILE_PATH);
     }
 
     private RdfBuilder()
@@ -32,80 +33,51 @@ public class RdfBuilder {
         this.model = ModelFactory.createDefaultModel();
     }
 
-    private Resource createResourceFromFile(File inputFile)
+    private void createResourcesFromFilePath(String path)
     {
-        Property document = model.createProperty(BASE_URL, "document");
-        Property documentID = model.createProperty(BASE_URL, "documentID");
-        Property isAbout = model.createProperty(BASE_URL, "isAbout");
+        ArrayList<News> newsCollection = this.getNewsFromFilePath(path);
 
-        News news = this.getNewsFromFile(inputFile);
+        for (News news : newsCollection) {
+            buildResourceFromNews(news);
+        }
+    }
 
+    private void buildResourceFromNews(News news)
+    {
         Resource resource = this.model.createResource(BASE_URL + news.getId());
 
-        resource.addProperty(documentID, news.getId());
-        resource.addProperty(document, news.getBody());
-        resource.addProperty(isAbout, news.getTopic());
-
-        return resource;
+        resource.addProperty(DC_11.description, news.getBody());
+        resource.addProperty(DC_11.subject, news.getTopic());
+        resource.addProperty(DC_11.creator, news.getAuthor());
     }
 
-    private News getNewsFromFile(File inputFile)
+    private ArrayList<News> getNewsFromFilePath(String path)
     {
-        String id = null;
-        String body = null;
-        String topic = null;
+        List<String> fileLines = Collections.emptyList();
 
-        String[] propertyNameArray = {"documentID", "document", "isAbout"};
-
-        BufferedReader b;
         try {
-            b = new BufferedReader(new FileReader(inputFile));
-            String readLine;
-            int i = 0;
-
-            while ((readLine = b.readLine()) != null && i < 3) {
-                switch (i) {
-                    case 0:
-                        id = readLine;
-                        break;
-                    case 1:
-                        body = readLine;
-                        break;
-                    case 2:
-                        topic = readLine;
-                        break;
-                    default:
-                        break;
-                }
-                i++;
-            }
-        } catch (Exception e) {
-            Scanner sc = new Scanner(System.in);
-            for (int i = 0; i < 3; i++) {
-                System.out.println("Please enter the " + propertyNameArray[i] + " property");
-                switch (i) {
-                    case 0:
-                        id = sc.nextLine();
-                        break;
-                    case 1:
-                        body = sc.nextLine();
-                        break;
-                    case 2:
-                        topic = sc.nextLine();
-                        break;
-                    default:
-                        break;
-                }
-            }
-            sc.close();
+            fileLines = Files.readAllLines(Paths.get(path), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
-        return new News(id, body, topic);
+        ArrayList<News> newsCollection = new ArrayList<>();
+
+        for(int i = 0; i < fileLines.size(); i+=4) {
+            String id = fileLines.get(i);
+            String body = fileLines.get(i+1);
+            String topic = fileLines.get(i+2);
+            String author = fileLines.get(i+3);
+            News news = new News(id, body, topic, author);
+            newsCollection.add(news);
+        }
+
+        return newsCollection;
     }
 
-    private void writeRDF()
+    private void writeRDF(String outputPath)
     {
-        try (FileWriter out = new FileWriter(OUTPUT_FILE_PATH)) {
+        try (FileWriter out = new FileWriter(outputPath)) {
             this.model.write(out, "RDF/XML-ABBREV");
         } catch (IOException e) {
             e.printStackTrace();
