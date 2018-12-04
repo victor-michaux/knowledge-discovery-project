@@ -14,26 +14,16 @@ import java.util.List;
 
 public class RdfBuilder {
 
-    private static final String INPUT_FILE_PATH = "news.txt";
-    private static final String OUTPUT_FILE_PATH = "news.rdf";
     private static final String BASE_URL = "https://boukari-lachambre-michaux.io/news/";
 
     private Model model;
 
-    public static void main(String args[]) {
-        RdfBuilder rdfBuilder = new RdfBuilder();
-
-        rdfBuilder.createResourcesFromFilePath(INPUT_FILE_PATH);
-
-        rdfBuilder.writeRDF(OUTPUT_FILE_PATH);
-    }
-
-    private RdfBuilder()
+    public RdfBuilder()
     {
         this.model = ModelFactory.createDefaultModel();
     }
 
-    private void createResourcesFromFilePath(String path)
+    public void createResourcesFromFilePath(String path)
     {
         ArrayList<News> newsCollection = this.getNewsFromFilePath(path);
 
@@ -75,7 +65,7 @@ public class RdfBuilder {
         return newsCollection;
     }
 
-    private void writeRDF(String outputPath)
+    public void writeRDF(String outputPath)
     {
         try (FileWriter out = new FileWriter(outputPath)) {
             this.model.write(out, "RDF/XML-ABBREV");
